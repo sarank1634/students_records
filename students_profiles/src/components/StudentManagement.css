@@ -1,0 +1,114 @@
+.student-management-container {
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.student-table th,
+.student-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.student-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  text-align: center;
+}
+
+.student-table .profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.student-table .actions {
+  text-align: center;
+}
+
+.student-table .actions button {
+  padding: 5px 10px;
+  margin: 0 4px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+.student-table .attendance-actions {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.student-table .attendance-actions button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.student-table .attendance-actions .present-btn {
+  background-color: #28a745;
+}
+
+.student-table .attendance-actions .absent-btn {
+  background-color: #dc3545;
+}
+
+.student-table .attendance-actions .delete-btn:hover {
+  background-color: #c82333;
+}
+
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 15px;
+  color: white;
+  font-weight: bold;
+  text-transform: capitalize;
+  font-size: 12px;
+}
+
+.status-badge.present {
+  background-color: #28a745;
+}
+
+.status-badge.absent {
+  background-color: #dc3545;
+}
+
+.status-badge.not-marked {
+  background-color: #6c757d;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
