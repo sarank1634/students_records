@@ -16,7 +16,7 @@ const Login = () => {
     setError('');
     setSuccess('');
     try {
-      const response = await axios.post('/login', data);
+      const response = await axios.post('/users/login', data);
       localStorage.setItem('token', response.data.token);
       window.dispatchEvent(new Event('authChange'));
       setSuccess('Login successful! Redirecting...');

@@ -1,59 +1,88 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import axios from '../api';
 
 const Register = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const [isLoading, setIsLoading] = useState(false);
+  const [userType, setUserType] = useState('student');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    studentId: '',
+    staffId: '',
+  });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
-  const onSubmit = async (data) => {
-    setIsLoading(true);
+  const { name, email, password, studentId, staffId } = formData;
+
+  const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError('');
     setSuccess('');
+
+    const payload = {
+      role: userType,
+      name,
+      email,
+      password,
+    };
+
+    if (userType === 'student') {
+      payload.studentId = studentId;
+    } else {
+      payload.staffId = staffId;
+    }
+
     try {
-      const response = await axios.post('http://localhost:5000/api/register', data);
-      localStorage.setItem('token', response.data.token);
-      window.dispatchEvent(new Event('authChange')); // Notify App component
-      setSuccess('Registration successful! Redirecting...');
-      setTimeout(() => navigate('/attendance'), 1000);
+      const res = await axios.post('/users/register', payload);
+      setSuccess('Registration successful! Please log in.');
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError(err.response?.data?.msg || 'There was an error registering!');
-    } finally {
-      setIsLoading(false);
+      setError(err.response?.data?.msg || 'Registration failed. Please try again.');
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {success && <p className="success-message">{success}</p>}
-        {error && <p className="error-message">{error}</p>}
-        <div>
-          <label>Username</label>
-          <input {...register('username', { required: true })} />
-          {errors.username && <span>This field is required</span>}
-        </div>
-        <div>
-          <label>Email</label>
-          <input {...register('email', { required: true })} />
-          {errors.email && <span>This field is required</span>}
-        </div>
-        <div>
-          <label>Password</label>
-          <input type="password" {...register('password', { required: true })} />
-          {errors.password && <span>This field is required</span>}
-        </div>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Registering...' : 'Register'}
+    <div className="form-container">
+      <h2>Register a New Account</h2>
+      <div className="user-type-toggle">
+        <button 
+          className={userType === 'student' ? 'active' : ''}
+          onClick={() => setUserType('student')}
+        >
+          I am a Student
         </button>
+        <button 
+          className={userType === 'staff' ? 'active' : ''}
+          onClick={() => setUserType('staff')}
+        >
+          I am a Staff Member
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+        
+        <input type="text" name="name" value={name} onChange={onChange} placeholder="Full Name" required />
+        <input type="email" name="email" value={email} onChange={onChange} placeholder="Email Address" required />
+        <input type="password" name="password" value={password} onChange={onChange} placeholder="Password" required />
+
+        {userType === 'student' ? (
+          <input type="text" name="studentId" value={studentId} onChange={onChange} placeholder="Student ID" required />
+        ) : (
+          <input type="text" name="staffId" value={staffId} onChange={onChange} placeholder="Staff ID" required />
+        )}
+
+        <button type="submit">Register</button>
       </form>
     </div>
   );
 };
 
 export default Register;
+

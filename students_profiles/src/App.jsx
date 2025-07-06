@@ -6,13 +6,14 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Attendance from './components/Attendance';
 import StudentManagement from './components/StudentManagement';
-import AddStudent from './components/AddStudent';
+
 import EditStudent from './components/EditStudent';
 import ViewProfile from './components/ViewProfile';
 import Dashboard from './components/Dashboard';
 import UpdateAttendance from './components/UpdateAttendance';
+import AddUser from './components/AddUser';
+import StaffProfile from './components/StaffProfile';
 import ProtectedRoute from './components/ProtectedRoute';
-import './App.css';
 
 function App() {
   // Use a wrapper component to get access to the useNavigate hook
@@ -56,104 +57,104 @@ function App() {
 
     return (
       <div>
-        <nav>
-          <ul>
-            {isAuthenticated ? (
-              <>
-                {userRole === 'staff' ? (
-                  <li>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </li>
-                ) : (
-                  <li>
-                    <Link to="/attendance">Attendance</Link>
-                  </li>
-                )}
-                <li>
+        <nav className="navbar">
+          <div className="navbar-brand">
+            <Link to={isAuthenticated ? (userRole === 'staff' ? '/dashboard' : '/attendance') : '/login'} className="navbar-item">
+              Student Records
+            </Link>
+          </div>
+          <div className="navbar-menu">
+            <div className="navbar-end">
+              {isAuthenticated ? (
+                <>
+                  {userRole === 'staff' && (
+                    <Link to="/dashboard" className="navbar-item">Dashboard</Link>
+                  )}
+                   {userRole !== 'staff' && (
+                    <Link to="/attendance" className="navbar-item">Attendance</Link>
+                  )}
                   <button onClick={handleLogout} className="logout-button">Logout</button>
-                </li>
-              </>
-            ) : (
-              <>
-                <li>
-                  <Link to="/login">Login</Link>
-                </li>
-                <li>
-                  <Link to="/register">Register</Link>
-                </li>
-              </>
-            )}
-          </ul>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="navbar-item">Login</Link>
+                  <Link to="/register" className="navbar-item">Register</Link>
+                </>
+              )}
+            </div>
+          </div>
         </nav>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/attendance"
-            element={
-              <ProtectedRoute>
-                <Attendance />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['staff']}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student-management"
-            element={
-              <ProtectedRoute allowedRoles={['staff']}>
-                <StudentManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-student"
-            element={
-              <ProtectedRoute allowedRoles={['staff']}>
-                <AddStudent />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/edit-student/:id"
-            element={
-              <ProtectedRoute allowedRoles={['staff']}>
-                <EditStudent />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/view-profile/:id"
-            element={
-              <ProtectedRoute allowedRoles={['staff']}>
-                <ViewProfile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/update-attendance"
-            element={
-              <ProtectedRoute allowedRoles={['staff']}>
-                <UpdateAttendance />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/update-attendance"
-            element={
-              <ProtectedRoute allowedRoles={['staff']}>
-                <UpdateAttendance />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/attendance"
+              element={
+                <ProtectedRoute>
+                  <Attendance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student-management"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  <StudentManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/add-user"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  <AddUser />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/edit-student/:id"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  <EditStudent />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/view-profile/:id"
+              element={
+                <ProtectedRoute>
+                  <ViewProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/:id"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  <StaffProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/update-attendance"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  <UpdateAttendance />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </main>
       </div>
     );
   };

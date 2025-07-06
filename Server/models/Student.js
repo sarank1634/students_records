@@ -26,6 +26,14 @@ const StudentSchema = new mongoose.Schema({
   },
   profileImage: {
     type: String
+  },
+  todaysAttendance: {
+    type: String,
+    default: 'Not Marked'
+  },
+  attendanceSummary: {
+    presentDays: { type: Number, default: 0 },
+    
   }
 });
 

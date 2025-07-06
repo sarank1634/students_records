@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
-import './EditStudent.css';
+
 
 const EditStudent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [studentData, setStudentData] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     studentId: '',
     email: '',
     phone: '',
     address: '',
+    dob: '',
+    class: '',
+    department: '',
   });
   const [profileImage, setProfileImage] = useState(null);
-  const [dob, setDob] = useState('');
-  const [classValue, setClassValue] = useState('');
-  const [department, setDepartment] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,11 +24,17 @@ const EditStudent = () => {
     const fetchStudent = async () => {
       try {
         const res = await axios.get(`/students/${id}`);
-        const { name, studentId, email, phone, address, dob, class: classValue, department } = res.data;
-        setStudentData({ name, studentId, email, phone, address });
-        setDob(dob ? new Date(dob).toISOString().split('T')[0] : '');
-        setClassValue(classValue || '');
-        setDepartment(department || '');
+        const { name, studentId, email, phone, address, dob, class: studentClass, department } = res.data;
+        setFormData({
+          name: name || '',
+          studentId: studentId || '',
+          email: email || '',
+          phone: phone || '',
+          address: address || '',
+          dob: dob ? new Date(dob).toISOString().split('T')[0] : '',
+          class: studentClass || '',
+          department: department || '',
+        });
       } catch (err) {
         setError('Failed to fetch student data.');
       }
@@ -39,29 +45,26 @@ const EditStudent = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setStudentData({ ...studentData, [name]: value });
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    for (const key in studentData) {
-      formData.append(key, studentData[key]);
+    const submissionData = new FormData();
+    for (const key in formData) {
+      submissionData.append(key, formData[key]);
     }
-    formData.append('dob', dob);
-    formData.append('class', classValue);
-    formData.append('department', department);
     if (profileImage) {
-      formData.append('profileImage', profileImage);
+      submissionData.append('profileImage', profileImage);
     }
 
     try {
-      await axios.put(`/students/${id}`, formData, {
+      await axios.put(`/students/${id}`, submissionData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      navigate('/student-management');
+      navigate(`/view-profile/${id}`);
     } catch (err) {
       setError('Failed to update student.');
     }
@@ -72,45 +75,53 @@ const EditStudent = () => {
 
   return (
     <div className="edit-student-container">
-      <h2>Edit Student</h2>
+      <div className="header">
+        <h1>Edit Student</h1>
+        <button onClick={() => navigate(`/view-profile/${id}`)} className="back-btn">
+          Cancel
+        </button>
+      </div>
+      {error && <p className="error-message">{error}</p>}
       <form onSubmit={handleFormSubmit} className="edit-student-form">
-        <div className="form-group">
-          <label>Name</label>
-          <input type="text" name="name" value={studentData.name} onChange={handleChange} required />
+        <div className="form-grid">
+          <div className="form-group">
+            <label>Name</label>
+            <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label>Student ID</label>
+            <input type="text" name="studentId" value={formData.studentId} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label>Class</label>
+            <input type="text" name="class" value={formData.class} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label>Department</label>
+            <input type="text" name="department" value={formData.department} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label>Email</label>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} />
+          </div>
+          <div className="form-group">
+            <label>Phone</label>
+            <input type="text" name="phone" value={formData.phone} onChange={handleChange} />
+          </div>
+          <div className="form-group">
+            <label>Date of Birth</label>
+            <input type="date" name="dob" value={formData.dob} onChange={handleChange} />
+          </div>
+          <div className="form-group">
+            <label>Profile Image</label>
+            <input type="file" onChange={(e) => setProfileImage(e.target.files[0])} />
+          </div>
+          <div className="form-group form-group-full-width">
+            <label>Address</label>
+            <input type="text" name="address" value={formData.address} onChange={handleChange} />
+          </div>
         </div>
-        <div className="form-group">
-          <label>Student ID</label>
-          <input type="text" name="studentId" value={studentData.studentId} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label>Email</label>
-          <input type="email" name="email" value={studentData.email} onChange={handleChange} />
-        </div>
-        <div className="form-group">
-          <label>Phone</label>
-          <input type="text" name="phone" value={studentData.phone} onChange={handleChange} />
-        </div>
-        <div className="form-group">
-          <label>Address</label>
-          <input type="text" name="address" value={studentData.address} onChange={handleChange} />
-        </div>
-        <div className="form-group">
-          <label>Date of Birth</label>
-          <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>Class</label>
-          <input type="text" value={classValue} onChange={(e) => setClassValue(e.target.value)} required />
-        </div>
-        <div className="form-group">
-          <label>Department</label>
-          <input type="text" value={department} onChange={(e) => setDepartment(e.target.value)} required />
-        </div>
-        <div className="form-group">
-          <label>Profile Image</label>
-          <input type="file" onChange={(e) => setProfileImage(e.target.files[0])} />
-        </div>
-        <button type="submit">Update Student</button>
+        <button type="submit" className="submit-btn">Update Student</button>
       </form>
     </div>
   );

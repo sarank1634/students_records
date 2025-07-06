@@ -13,6 +13,13 @@ api.interceptors.request.use(config => {
   if (token) {
     config.headers['x-auth-token'] = token;
   }
+
+  // Add cache-control headers to prevent caching of GET requests
+  if (config.method === 'get') {
+    config.headers['Cache-Control'] = 'no-cache';
+    config.headers['Pragma'] = 'no-cache';
+    config.headers['Expires'] = '0';
+  }
   return config;
 }, error => {
   return Promise.reject(error);

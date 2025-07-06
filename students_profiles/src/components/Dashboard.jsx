@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './Dashboard.css'; // We'll create this file for styling
+ // We'll create this file for styling
 
 const Dashboard = () => {
   return (
@@ -11,9 +11,9 @@ const Dashboard = () => {
           <h3>Manage Student Profiles</h3>
           <p>Add, edit, or remove student details.</p>
         </Link>
-        <Link to="/attendance" className="dashboard-card">
+        <Link to="/update-attendance" className="dashboard-card">
           <h3>Update Attendance</h3>
-          <p>Mark daily attendance for students.</p>
+          <p>Mark daily attendance for students and staff.</p>
         </Link>
         <Link to="/register" className="dashboard-card">
           <h3>Add New User</h3>

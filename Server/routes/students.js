@@ -89,28 +89,7 @@ router.get('/', staffAuth, async (req, res) => {
     const totalStudents = await Student.countDocuments(query);
     const totalPages = Math.ceil(totalStudents / limit);
 
-    // Get today's attendance for the fetched students
-    const today = new Date();
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-
-    const attendanceRecords = await Attendance.find({
-      student: { $in: students.map(s => s._id) },
-      date: { $gte: startOfDay, $lte: endOfDay },
-    });
-
-    const attendanceMap = new Map();
-    attendanceRecords.forEach(record => {
-      attendanceMap.set(record.student.toString(), record.status);
-    });
-
-    // Add attendance status to each student object
-    const studentsWithAttendance = students.map(student => ({
-      ...student,
-      todaysAttendance: attendanceMap.get(student._id.toString()) || 'Not Marked',
-    }));
-
-    res.json({ students: studentsWithAttendance, totalPages });
+    res.json({ students, totalPages });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -122,26 +101,23 @@ router.get('/', staffAuth, async (req, res) => {
 // @access  Private (Staff)
 router.get('/:id', staffAuth, async (req, res) => {
   try {
+    console.log(`Fetching profile for student ID: ${req.params.id}`);
     const student = await Student.findById(req.params.id);
     if (!student) {
+      console.log('Student not found in database.');
       return res.status(404).json({ msg: 'Student not found' });
     }
+    console.log('Student data from DB:', JSON.stringify(student, null, 2));
 
-    // Fetch detailed attendance records
-    const attendanceRecords = await Attendance.find({ student: student._id }).lean();
+    // Fetch detailed attendance records to display on the calendar
+    const attendanceRecords = await Attendance.find({ user: student._id, onModel: 'Student' }).lean();
+    console.log(`Found ${attendanceRecords.length} attendance records.`);
 
-    // Calculate attendance summary
-    const presentDays = attendanceRecords.filter(record => record.status === 'Present').length;
-    const absentDays = attendanceRecords.filter(record => record.status === 'Absent').length;
-    const leaveDays = attendanceRecords.filter(record => record.status === 'Leave').length;
+    const responsePayload = { ...student.toObject(), attendance: attendanceRecords };
+    console.log('Sending response payload:', JSON.stringify(responsePayload, null, 2));
 
-    const attendanceSummary = { presentDays, absentDays, leaveDays };
-
-    res.json({
-      ...student.toObject(),
-      attendance: attendanceRecords, // Send the full list of records
-      attendanceSummary,
-    });
+    // Use .toObject() to convert the Mongoose document to a plain object
+    res.json(responsePayload);
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {

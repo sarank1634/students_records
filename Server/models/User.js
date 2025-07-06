@@ -11,6 +11,14 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  name: {
+    type: String
+  },
+  staffId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   email: {
     type: String,
     required: true,

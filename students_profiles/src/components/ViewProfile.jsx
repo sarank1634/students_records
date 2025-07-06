@@ -1,27 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../api';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import './ViewProfile.css';
+
 
 const ViewProfile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchAllData = async () => {
+      setIsLoading(true);
+      setError('');
       try {
-        const res = await axios.get(`/students/${id}`);
+        const res = await axios.get(`students/${id}`);
         setProfile(res.data);
       } catch (err) {
-        setError('Failed to fetch student profile.');
+        console.error('Failed to fetch data:', err);
+        setError('Failed to load student data.');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
-    fetchProfile();
+
+    fetchAllData();
   }, [id]);
 
   const getTileClassName = ({ date, view }) => {
@@ -39,67 +45,63 @@ const ViewProfile = () => {
   if (error) return <p className="error-message">{error}</p>;
   if (!profile) return <p>No profile data found.</p>;
 
-  const { name, studentId, email, phone, address, dob, profileImage, attendanceSummary } = profile;
+  const { name, studentId, email, phone, address, dob, class: studentClass, department, profileImage, attendanceSummary, attendance, todaysAttendance } = profile;
 
   return (
     <div className="profile-container">
       <div className="profile-header">
-        <img src={`http://localhost:5000/${profileImage}`} alt={name} />
-        <div className="profile-header-info">
-          <h2>{name}</h2>
-          <p>Student ID: {studentId}</p>
+        <div className="header-main">
+          <img src={`http://localhost:5000/${profileImage}`} alt={name} className="profile-image-large" />
+          <div className="header-info">
+            <h1>{name}</h1>
+            <p>Student ID: {studentId}</p>
+            <p className="todays-status-container">
+              Today's Status:
+              <span className={`status-badge ${todaysAttendance?.toLowerCase().replace(' ', '-') || 'not-marked'}`}>
+                {todaysAttendance || 'Not Marked'}
+              </span>
+            </p>
+          </div>
+        </div>
+        <div className="header-actions">
+          <button onClick={() => navigate('/student-management')} className="back-btn">Back to List</button>
+          <button onClick={() => navigate(`/edit-student/${id}`)} className="edit-btn">Edit</button>
         </div>
       </div>
 
-      <div className="profile-body">
-        {/* Left Column: Calendar */}
-        <div className="left-column">
-          <div className="attendance-calendar-container">
+      <div className="profile-content">
+        <div className="profile-main">
+          <div className="profile-card details-card">
+            <h3>Personal Details</h3>
+            <ul>
+              <li><strong>Email:</strong> <span>{email || 'N/A'}</span></li>
+              <li><strong>Phone:</strong> <span>{phone || 'N/A'}</span></li>
+              <li><strong>Class:</strong> <span>{studentClass || 'N/A'}</span></li>
+              <li><strong>Department:</strong> <span>{department || 'N/A'}</span></li>
+            </ul>
+          </div>
+          <div className="profile-card details-card">
+            <ul>
+              <li><strong>Date of Birth:</strong> <span>{dob ? new Date(dob).toLocaleDateString() : 'N/A'}</span></li>
+              <li className="full-width"><strong>Address:</strong> <span>{address || 'N/A'}</span></li>
+            </ul>
+          </div>
+          <div className="profile-card calendar-card">
             <h3>Attendance Calendar</h3>
-            <Calendar
-              tileClassName={getTileClassName}
-              className="attendance-calendar"
-            />
+            <Calendar tileClassName={getTileClassName} className="attendance-calendar" />
           </div>
         </div>
-
-        {/* Right Column: Details & Actions */}
-        <div className="right-column">
-          <div className="attendance-summary">
-            <h3>Attendance Summary</h3>
-            <div className="summary-grid">
-              <div className="summary-item present">
-                <span>{attendanceSummary.presentDays}</span>
-                Present
-              </div>
-              <div className="summary-item absent">
-                <span>{attendanceSummary.absentDays}</span>
-                Absent
-              </div>
-              <div className="summary-item leave">
-                <span>{attendanceSummary.leaveDays}</span>
-                Leave
+        <div className="profile-sidebar">
+          {attendanceSummary && (
+            <div className="profile-card summary-card">
+              <h3>Attendance Summary</h3>
+              <div className="summary-grid">
+                <div className="summary-item present"><span>{attendanceSummary.presentDays}</span>Present</div>
+                <div className="summary-item absent"><span>{attendanceSummary.absentDays}</span>Absent</div>
+                <div className="summary-item leave"><span>{attendanceSummary.leaveDays}</span>Leave</div>
               </div>
             </div>
-          </div>
-
-          <div className="mark-attendance">
-            <h3>Mark Today's Attendance</h3>
-            <div className="attendance-buttons">
-              <button className="present-btn">Present</button>
-              <button className="absent-btn">Absent</button>
-            </div>
-          </div>
-
-          <div className="profile-details">
-            <h3>Personal Details</h3>
-            <div className="details-grid">
-              <div className="detail-item"><strong>Email</strong><span>{email || 'N/A'}</span></div>
-              <div className="detail-item"><strong>Phone</strong><span>{phone || 'N/A'}</span></div>
-              <div className="detail-item"><strong>Address</strong><span>{address || 'N/A'}</span></div>
-              <div className="detail-item"><strong>Date of Birth</strong><span>{dob ? new Date(dob).toLocaleDateString() : 'N/A'}</span></div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { Link } from 'react-router-dom';
 import axios from '../api';
-import './Attendance.css';
+
 
 const Attendance = () => {
   const [userRole, setUserRole] = useState(null);
@@ -85,32 +85,7 @@ const Attendance = () => {
             </Link>
           </div>
 
-          <div className="add-student-form-container">
-            <h3>Add a New Student</h3>
-            <form onSubmit={handleAddStudent} className="add-student-form">
-              <div className="form-group">
-                <label htmlFor="newStudentName">Student Name</label>
-                <input
-                  type="text"
-                  id="newStudentName"
-                  value={newStudentName}
-                  onChange={(e) => setNewStudentName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="newStudentId">Student ID</label>
-                <input
-                  type="text"
-                  id="newStudentId"
-                  value={newStudentId}
-                  onChange={(e) => setNewStudentId(e.target.value)}
-                  required
-                />
-              </div>
-              <button type="submit" className="add-student-button">Add Student</button>
-            </form>
-          </div>
+
         </div>
       )}
 

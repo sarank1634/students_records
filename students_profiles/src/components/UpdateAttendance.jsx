@@ -1,103 +1,114 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../api';
-import './UpdateAttendance.css';
+
 
 const UpdateAttendance = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    class: '',
-    department: '',
-  });
+  const navigate = useNavigate();
+  const [userType, setUserType] = useState('student'); // 'student' or 'staff'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [foundUser, setFoundUser] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const { name, class: studentClass, department } = formData;
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setFoundUser(null);
 
-  const onChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (!searchTerm) {
+      setError('Please enter a name or ID.');
+      return;
+    }
+
+    try {
+      const res = await axios.get(`users/search?role=${userType}&term=${searchTerm}`);
+      if (res.data) {
+        setFoundUser(res.data);
+      } else {
+        setError('No user found with the provided details.');
+      }
+    } catch (err) {
+      setError(err.response?.data?.msg || 'An error occurred during search.');
+    }
   };
 
   const handleMarkAttendance = async (status) => {
-    setMessage('');
-    setError('');
+    if (!foundUser) return;
+
     try {
-      const res = await axios.post('/students/attendance-by-details', {
-        name,
-        class: studentClass,
-        department,
+      await axios.post('attendance', {
+        userId: foundUser._id,
+        userType: userType,
         status,
       });
-      setMessage(res.data.msg);
-      // Clear form on success
-      setFormData({ name: '', class: '', department: '' });
+      setMessage(`${foundUser.name}'s attendance marked as ${status}. Redirecting...`);
+      
+      setTimeout(() => {
+        navigate('/student-management');
+      }, 1500);
+
     } catch (err) {
-      setError(err.response?.data?.msg || 'An error occurred.');
+      setError(err.response?.data?.msg || 'Failed to mark attendance.');
     }
   };
 
   return (
-    <div className="update-attendance-form-container">
-      <h2>Mark Student Attendance</h2>
-      <p>Enter student details to mark their attendance for today.</p>
-      {message && <p className="success-message">{message}</p>}
+    <div className="update-attendance-container">
+      <div className="header">
+        <h1>Update Attendance</h1>
+      </div>
+
+      <div className="user-type-toggle">
+        <button
+          className={userType === 'student' ? 'active' : ''}
+          onClick={() => setUserType('student')}
+        >
+          Student
+        </button>
+        <button
+          className={userType === 'staff' ? 'active' : ''}
+          onClick={() => setUserType('staff')}
+        >
+          Staff
+        </button>
+      </div>
+
+      <div className="search-container">
+        <form onSubmit={handleSearch}>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={`Enter ${userType === 'student' ? 'Student Name or Roll No.' : 'Staff Name or ID'}`}
+            className="search-input"
+          />
+          <button type="submit" className="search-btn">Search</button>
+        </form>
+      </div>
+
       {error && <p className="error-message">{error}</p>}
-      <form
-        className="attendance-form"
-        onSubmit={(e) => e.preventDefault()}
-      >
-        <div className="form-group">
-          <label htmlFor="name">Student Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={name}
-            onChange={onChange}
-            required
-            placeholder="e.g., John Doe"
+      {message && <p className="success-message">{message}</p>}
+
+      {foundUser && (
+        <div className="found-user-card">
+          <img 
+            src={`http://localhost:5000/${foundUser.profileImage}`}
+            alt={foundUser.name} 
+            className="profile-image-small" 
           />
+          <div className="user-details">
+            <p><strong>Name:</strong> {foundUser.name}</p>
+            <p><strong>{userType === 'student' ? 'Roll No:' : 'Staff ID:'}</strong> {foundUser.studentId || foundUser.staffId}</p>
+            <p><strong>Department:</strong> {foundUser.department}</p>
+          </div>
+          <div className="attendance-actions">
+            <button className="present-btn" onClick={() => handleMarkAttendance('Present')}>Present</button>
+            <button className="absent-btn" onClick={() => handleMarkAttendance('Absent')}>Absent</button>
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="class">Class</label>
-          <input
-            type="text"
-            id="class"
-            name="class"
-            value={studentClass}
-            onChange={onChange}
-            required
-            placeholder="e.g., 12"
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="department">Department</label>
-          <input
-            type="text"
-            id="department"
-            name="department"
-            value={department}
-            onChange={onChange}
-            required
-            placeholder="e.g., Computer Science"
-          />
-        </div>
-        <div className="button-group">
-          <button
-            type="button"
-            className="present-btn"
-            onClick={() => handleMarkAttendance('Present')}
-          >
-            Mark Present
-          </button>
-          <button
-            type="button"
-            className="absent-btn"
-            onClick={() => handleMarkAttendance('Absent')}
-          >
-            Mark Absent
-          </button>
-        </div>
-      </form>
+      )}
     </div>
   );
 };
